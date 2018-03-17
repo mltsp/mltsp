@@ -3,7 +3,8 @@ import scipy.stats as stats
 from ._lomb_scargle import lomb_scargle
 
 
-def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone_control=5.0):
+def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone_control=5.0,
+                       freq_grid="auto", freq_grid_param=None):
     """Simultaneous fit of a sum of sinusoids by weighted least squares:
            y(t) = Sum_k Ck*t^k + Sum_i Sum_j A_ij sin(2*pi*j*fi*(t-t0)+phi_j),
            i=[1,nfreq], j=[1,nharm]
@@ -25,6 +26,13 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
     nfreq : int
         Number of frequencies to fit.
 
+    freq_grid : str
+        How to set the frequency grid for the search.
+        "auto" will use default.
+
+    freq_grid_param : dict
+        The grid parameters if freq_grid != "auto"
+        
     Returns
     -------
     dict
@@ -44,12 +52,18 @@ def lomb_scargle_model(time, signal, error, sys_err=0.05, nharm=8, nfreq=3, tone
     chi0 = np.dot(signal**2, wt)
 
 # TODO parametrize?
-    f0 = 1. / max(time)
-    df = 0.8 / max(time) # 20120202 :    0.1/Xmax
-    fmax = 33. #pre 20120126: 10. # 25
-    numf = int((fmax - f0) / df) # TODO !!! this is off by 1 point, fix?
+    if freq_grid == "auto":
+        f0 = 1. / max(time)
+        df = 0.8 / max(time)  # 20120202 :    0.1/Xmax
+        fmax = 33.  # pre 20120126: 10. # 25
+        numf = int((fmax - f0) / df) + 1
+    else:
+        f0 = freq_grid_param["f0"]
+        df = freq_grid_param["df"]
+        fmax = freq_grid_param["fmax"]
+        numf = freq_grid_param["numf"]
 
-    model_dict = {'freq_fits' : []}
+    model_dict = {'freq_fits': []}
     lambda0_range = [-np.log10(len(time)), 8] # these numbers "fix" the strange-amplitude effect
     for i in range(nfreq):
         if i == 0:
