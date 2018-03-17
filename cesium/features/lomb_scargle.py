@@ -274,9 +274,11 @@ def fit_lomb_scargle(time, signal, error, f0, df, numf, nharm=8, psdmin=6., detr
     ncp = norm.cumprod()
     out_dict['trend_coef'] = coef / ncp
     out_dict['y_offset'] = out_dict['trend_coef'][0] - cn0
-    out_dict['trend_coef_error'] = np.sqrt( ( 1./s0 + np.diag(np.dot(hat0.T,np.dot(hat_hat,hat0))) )/ncp**2 )
+    out_dict['trend_coef_error'] = np.sqrt((1./s0 +
+                                            np.diag(np.dot(hat0.T,
+                                            np.dot(hat_hat, hat0))))/ncp**2)
     out_dict['y_offset_error'] = out_dict['trend_coef_error'][0]
-    
+
     prob = stats.f.sf(0.5 * (ntime - 1. - detrend_order) * (1. -out_dict['chi2'] / out_dict['chi0']), 2, ntime - 1 - detrend_order)
     out_dict['signif'] = lprob2sigma(np.log(prob))
 
